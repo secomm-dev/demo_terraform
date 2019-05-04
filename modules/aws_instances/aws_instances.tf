@@ -7,7 +7,7 @@ resource "aws_instance" "example" {
   vpc_security_group_ids = ["${var.vpc_security_group_ids}"]
   iam_instance_profile   = "${var.iam-role}"
   tags {
-    Name = "${element(${var.instance_tag}, count.index)}"
+    Name = "${element(var.instance_tag, count.index)}"
   }
 
   root_block_device {
