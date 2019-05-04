@@ -6,7 +6,7 @@ variable "instance_type" {}
 variable "key_name" {}
 #variable "vpc_security_group_ids" {type = "list"}
 variable "iam-role" {}
-variable "instance_tags" {}
+variable "instance_tags" {type = "list"}
 variable "volume_size" {}
 variable "volume_type" {}
 variable "delete_on_termination" {}
