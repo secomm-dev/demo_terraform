@@ -55,34 +55,62 @@ module "sg" {
   environment        = "testing"
   vpc_id             = "${module.aws_vpc.vpc_id}"
   inbound_cidr_blocks      = {
-    "0" = ["10.1.3.0/24", "27017","27017","tcp"]
-    "1" = ["10.1.4.0/24", "27017","27017","tcp"]
-    "2" = ["${chomp(data.http.workstation_ip.body)}/32", "22", "22", "tcp" ]
-    "3" = ["27.74.249.220/32", "22", "22", "tcp"]
+    "0" = ["${chomp(data.http.workstation_ip.body)}/32", "22", "22", "tcp" ]
+    "1" = ["27.74.249.220/32", "22", "22", "tcp"]
+    "2" = ["10.1.3.0/24", "80", "80", "tcp"]
+    "3" = ["10.1.4.0/24", "80", "80", "tcp"]
+    "4" = ["10.1.3.0/24", "80", "443", "tcp"]
+    "5" = ["10.1.4.0/24", "80", "443", "tcp"]
   }
   outbound_cidr_blocks = {
     "0"    = ["0.0.0.0/0","0","0","-1"]
   }
     ###source security group id###
   number_of_ingress_source_security_group_id = 0
-  inbound_source_security_group = {}
-  number_of_egress_source_security_group_id = 0
-  outbound_source_security_group = {}
+  inbound_source_security_group              = {}
+  number_of_egress_source_security_group_id  = 0
+  outbound_source_security_group             = {}
 
   tags     = {
-    "Name" = "sg-test"
+    "Name" = "SG-BCP"
   }
 
 }
 
+module "alb" {
+  source          = "../modules/aws_app_load_balancer"
+  alb_name        = var.alb_name
+  idle_timeout    = var.alb_idle_timeout
+  internal        = var.alb_internal
+  security_groups = [module.sg.security_group_id]
+  subnet_id       = [module.aws_vpc.aws_subnet_id]
+  tags            = var.alb_tags
 
+  #alb_listener
+  load_balancer_arn = module.alb.alb_arn
+  port_listener     = var.alb_port_listener
+  protocol_listener = var.protocol_listener
 
+  #default action
+  target_group_arn = ""
+  type             = var.alb_type
 
+  #alb_target_group
+  port_target_group     = var.port_target_group
+  protocol_target_group = var.protocol_target_group
+  target_group_name     = var.target_group_name
+  target_type           = var.alb_target_type
+  vpc_id                = module.aws_vpc.vpc_id
 
+  #health_check
+  health_port         = var.health_port
+  healthy_threshold   = var.healthy_threshold
+  unhealthy_threshold = var.unhealthy_threshold
+  timeout             = var.alb_timeout
+  interval            = var.alb_interval
+  path                = var.alb_path
 
-
-
-
-
-
-
+  #target_group_attachment
+  target_id = module.aws_instance.aws_instance_id
+  port      = 80
+}
